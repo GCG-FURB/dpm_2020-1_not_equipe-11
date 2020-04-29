@@ -12,4 +12,4 @@ class Produto:
         self.nome = nome
         self.descricao = descricao
         self.quantidade = quantidade
-        self.valor_unitario = valor_unitario
+        self.preco_unitario = valor_unitario
