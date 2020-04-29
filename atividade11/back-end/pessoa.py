@@ -79,6 +79,7 @@ def produto_insert():
     retorno = {'id': id}
     return retorno
 
+
 @app.route('/produtos/alterar', methods=['PUT'])
 def produto_update():
     try:

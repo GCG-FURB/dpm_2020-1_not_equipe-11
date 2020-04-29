@@ -12,9 +12,7 @@ class ClienteLista extends StatelessWidget {
       appBar: AppBar(
         title: Text("Lista de Clientes"),
       ),
-      body: Container(
-          child: MyClienteLista()
-      ),
+      body: Container(child: MyClienteLista()),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           Navigator.push(context,
@@ -24,18 +22,14 @@ class ClienteLista extends StatelessWidget {
       ),
     );
   }
-
-
 }
 
 class MyClienteLista extends StatefulWidget {
   @override
   _ClienteListaState createState() => new _ClienteListaState();
-
 }
 
 class _ClienteListaState extends State<MyClienteLista> {
-
   Future<List<Cliente>> futureCliente;
 
   @override
@@ -47,32 +41,33 @@ class _ClienteListaState extends State<MyClienteLista> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        body: FutureBuilder<List<Cliente>>(
-          future: futureCliente,
-          builder: (context, snapshot) {
-            if (snapshot.hasData) {
-              List<Cliente> clientes = snapshot.data;
-              return ListView(
-                children: clientes.map((cliente)  => ListTile(
-                  title: Text(cliente.nomeCompleto()),
-                )).toList()
-              );
-            } else if (snapshot.hasError) {
-              return Text("${snapshot.error}");
-            }
-            return CircularProgressIndicator();
-          },
-        ),
+      body: FutureBuilder<List<Cliente>>(
+        future: futureCliente,
+        builder: (context, snapshot) {
+          if (snapshot.hasData) {
+            List<Cliente> clientes = snapshot.data;
+            return ListView(
+                children: clientes
+                    .map((cliente) => ListTile(
+                          title: Text(cliente.nomeCompleto()),
+                        ))
+                    .toList());
+          } else if (snapshot.hasError) {
+            return Text("${snapshot.error}");
+          }
+          return CircularProgressIndicator();
+        },
+      ),
     );
   }
-
 
   Future<List<Cliente>> fetchClientes() async {
     final response = await http.get('http://10.0.2.2:5000/clientes');
 
     if (response.statusCode == 200) {
       List<dynamic> body = jsonDecode(response.body);
-      List<Cliente> clientes = body.map((dynamic item) => Cliente.fromJson(item)).toList();
+      List<Cliente> clientes =
+          body.map((dynamic item) => Cliente.fromJson(item)).toList();
       return clientes;
     } else {
       throw Exception('Failed to load clients');
