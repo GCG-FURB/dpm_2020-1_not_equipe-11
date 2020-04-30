@@ -23,6 +23,15 @@ def cliente_get_by_id(id):
     return dumps(cliente.__dict__)
 
 
+@app.route("/clientes/<int:id>", methods=['DELETE'])
+def cliente_apagar(id):
+    try:
+        cliente_service.apagar(id)
+        return {'status': True}
+    except Error:
+        return {'status': False}
+
+
 @app.route('/clientes/inserir', methods=['POST'])
 def cliente_insert():
     dados = request.get_json()
@@ -65,6 +74,15 @@ def produto_get_by_id(id):
         return abort(404)
 
     return dumps(produto.__dict__)
+
+
+@app.route("/produtos/<int:id>", methods=['DELETE'])
+def produto_apagar(id):
+    try:
+        produto_service.apagar(id)
+        return {'status': True}
+    except Error:
+        return {'status': False}
 
 
 @app.route('/produtos/inserir', methods=['POST'])

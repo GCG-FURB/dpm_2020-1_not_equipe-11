@@ -34,6 +34,13 @@ def alterar(produto: Produto):
     conexao.commit()
 
 
+def apagar(id: int):
+    conexao = conectar()
+    cursor = conexao.cursor()
+    cursor.execute(f'UPDATE produtos SET registro_ativo=0 WHERE id={id}')
+    conexao.commit()
+
+
 def obter_pelo_id(id: int):
     conexao = conectar()
     cursor = conexao.execute(f'SELECT id, nome, descricao, quantidade, preco_unitario FROM produtos WHERE registro_ativo = 1 AND id = {id}')
