@@ -1,9 +1,9 @@
 class Cliente {
-  final int id;
-  final String nome;
-  final String sobrenome;
-  final String cpf;
-  final String observacao;
+  int id;
+  String nome;
+  String sobrenome;
+  String cpf;
+  String observacao;
 
   Cliente({this.id, this.nome, this.sobrenome, this.cpf, this.observacao});
 
@@ -12,9 +12,23 @@ class Cliente {
         id: json['id'],
         nome: json['nome'],
         sobrenome: json['sobrenome'],
-        cpf:  json['cpf'],
+        cpf: json['cpf'],
         observacao: json['observacao']);
   }
 
+  Map<String, String> toMap() {
+    return {
+      'nome': nome,
+      'sobrenome': sobrenome,
+      'cpf': cpf,
+      'observacao': observacao
+    };
+  }
+
   nomeCompleto() => nome + " " + sobrenome;
+
+  @override
+  String toString() {
+    return 'Cliente{id: $id, nome: $nome, sobrenome: $sobrenome, cpf: $cpf, observacao: $observacao}';
+  }
 }

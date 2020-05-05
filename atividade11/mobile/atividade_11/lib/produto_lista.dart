@@ -75,16 +75,16 @@ class _ProductListState extends State<MyProductList> {
                       background: slideRightBackground(),
                       secondaryBackground: slideLeftBackground(),
                       confirmDismiss: (direction) async {
-                        if (direction == DismissDirection.endToStart) {
-                          return await ApresentarModalApagar(context, index);
-                        } else {
-                          Produto produto = await Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) =>
-                                      ProdutoCadastro(produtos[index])));
-                        }
-                      },
+                      if (direction == DismissDirection.endToStart) {
+                        return await ApresentarModalApagar(context, index);
+                      } else {
+                        Produto produto = await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) =>
+                                    ProdutoCadastro(produtos[index])));
+                      }
+                    },
                     );
                   });
             } else if (snapshot.hasError) {

@@ -1,26 +1,16 @@
-import 'dart:convert';
-
 import 'package:atividade11/cliente_cadastro.dart';
 import 'package:atividade11/models/Cliente.dart';
+import 'package:atividade11/repositories/cliente_repository.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 
 class ClienteLista extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text("Lista de Clientes"),
-      ),
-      body: Container(child: MyClienteLista()),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(context,
-              MaterialPageRoute(builder: (context) => ClienteCadastro()));
-        },
-        child: Icon(Icons.add),
-      ),
-    );
+        appBar: AppBar(
+          title: Text("Lista de Clientes"),
+        ),
+        body: Container(child: MyClienteLista()));
   }
 }
 
@@ -31,6 +21,13 @@ class MyClienteLista extends StatefulWidget {
 
 class _ClienteListaState extends State<MyClienteLista> {
   Future<List<Cliente>> futureCliente;
+  ClienteRepository repository;
+
+  List<Cliente> clientes;
+
+  _ClienteListaState() {
+    repository = new ClienteRepository();
+  }
 
   @override
   void initState() {
@@ -41,6 +38,17 @@ class _ClienteListaState extends State<MyClienteLista> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      floatingActionButton: FloatingActionButton(
+        onPressed: () async {
+          Cliente cliente = await Navigator.push(context,
+              MaterialPageRoute(builder: (context) => ClienteCadastro(null)));
+          if (cliente != null) {
+            clientes.add(cliente);
+            clientes.sort((a, b) => a.nome.compareTo(b.nome));
+          }
+        },
+        child: Icon(Icons.add),
+      ),
       body: FutureBuilder<List<Cliente>>(
         future: futureCliente,
         builder: (context, snapshot) {
@@ -50,6 +58,12 @@ class _ClienteListaState extends State<MyClienteLista> {
                 children: clientes
                     .map((cliente) => ListTile(
                           title: Text(cliente.nomeCompleto()),
+                          onLongPress: () => dialogApagar(cliente),
+                          onTap: () async => await Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) =>
+                                      ClienteCadastro(cliente))),
                         ))
                     .toList());
           } else if (snapshot.hasError) {
@@ -62,15 +76,47 @@ class _ClienteListaState extends State<MyClienteLista> {
   }
 
   Future<List<Cliente>> fetchClientes() async {
-    final response = await http.get('http://10.0.2.2:5000/clientes');
+    clientes = await repository.obterTodos();
+    return clientes;
+  }
 
-    if (response.statusCode == 200) {
-      List<dynamic> body = jsonDecode(response.body);
-      List<Cliente> clientes =
-          body.map((dynamic item) => Cliente.fromJson(item)).toList();
-      return clientes;
-    } else {
-      throw Exception('Failed to load clients');
-    }
+  apagarCliente(Cliente cliente) async {
+    await repository.apagar(cliente.id);
+    clientes.removeWhere((aux) => aux.id == cliente.id);
+    Navigator.of(context).pop();
+    setState(() {});
+    Scaffold.of(context).showSnackBar(SnackBar(
+      content: Text("Produto apagado com sucesso"),
+    ));
+  }
+
+  dialogApagar(Cliente cliente) async {
+    await showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            content: Text("Deseja realmente apagar o produto ${cliente.nome}?"),
+            actions: <Widget>[
+              FlatButton(
+                child: Text(
+                  "Cancelar",
+                  style: TextStyle(color: Colors.black),
+                ),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+              FlatButton(
+                child: Text(
+                  "Apagar",
+                  style: TextStyle(color: Colors.red),
+                ),
+                onPressed: () {
+                  apagarCliente(cliente);
+                },
+              ),
+            ],
+          );
+        });
   }
 }
