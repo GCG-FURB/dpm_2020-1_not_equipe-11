@@ -1,3 +1,4 @@
 [A10 – peso: 2,0] ter uma aplicação simples utilizando recursos gráficos em 2D ou 3D, com um personagem que responda os movimentos do dispositivo usando o acelerômetro.
 
-APK disponível em [.\app-release.apk](.\app-release.apk)
+APK disponível em [app-release.apk](app-release.apk)
+Demonstracao: [demo-acelerometro.gif](demo-acelerometro.gif)
