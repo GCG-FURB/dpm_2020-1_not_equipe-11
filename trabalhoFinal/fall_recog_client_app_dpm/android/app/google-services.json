@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "841444504917",
+    "firebase_url": "https://fall-detection-dpm.firebaseio.com",
+    "project_id": "fall-detection-dpm",
+    "storage_bucket": "fall-detection-dpm.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:841444504917:android:a9f637d234a10f26ff6bdc",
+        "android_client_info": {
+          "package_name": "com.example.fall_recog_client_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "841444504917-h6es7rnlhhh6dp84sifgs4jrq3vnb78h.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDgJVO8JjkgjXg-7stY_jn66H5TNbClxSg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "841444504917-h6es7rnlhhh6dp84sifgs4jrq3vnb78h.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

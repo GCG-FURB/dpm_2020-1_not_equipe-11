@@ -1,0 +1,5 @@
+enum StatusType {
+  DESCONHECIDO,
+  POSITIVO,
+  NEGATIVO,
+}
