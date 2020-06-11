@@ -1,9 +1,27 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:fall_recog_client_app/model/comodo.dart';
 import 'package:fall_recog_client_app/model/record.dart';
 
 class DataRepository {
   // 1
   final CollectionReference collection = Firestore.instance.collection('records');
+
+  final CollectionReference collectionComodos = Firestore.instance.collection('comodos');
+
+  Stream<QuerySnapshot> getStreamComodos(){
+    return collectionComodos.snapshots();
+  }
+
+  addComodo(Comodo comodo) async{
+    var json = comodo.toJson();
+    DocumentReference ref = await collectionComodos.add(json);
+    return ref.documentID;
+  }
+
+  updateComodo(Comodo comodo) async {
+    await collectionComodos.document(comodo.uid).updateData(comodo.toJson());
+  }
+
   // 2
   Stream<QuerySnapshot> getStream() {
     return collection.where('queda', isEqualTo: true)
@@ -38,5 +56,5 @@ class DataRepository {
   // 4
   update(Record r) async {
     await collection.document(r.reference.documentID).updateData(r.toJson());
-  }  
+  }
 }
