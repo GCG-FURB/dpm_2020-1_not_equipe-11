@@ -45,10 +45,10 @@ class Comodo {
 }
 
 class Ponto {
-  int x;
-  int y;
+  double x;
+  double y;
 
-  Ponto(int x, int y) {
+  Ponto(double x, double y) {
     this.x = x;
     this.y = y;
   }

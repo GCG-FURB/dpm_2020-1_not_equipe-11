@@ -8,6 +8,7 @@
     <application
         android:name="io.flutter.app.FlutterApplication"
         android:label="fall_recog_client_app"
+        android:windowSoftInputMode="adjustResize"
         android:icon="@mipmap/ic_launcher">
         <activity
             android:name=".MainActivity"

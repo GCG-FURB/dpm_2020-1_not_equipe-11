@@ -1,8 +1,6 @@
 import 'dart:io';
-import 'dart:math';
 import 'dart:ui';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fall_recog_client_app/model/comodo.dart';
 import 'package:flutter/material.dart';
 
@@ -39,7 +37,7 @@ class _ComodosWidgetState extends State<ComodosWidget> {
                     ..strokeWidth = strokeWidth));
             });
           },
-          onPanStart: (details) async{
+          onPanStart: (details) async {
             setState(() {
               RenderBox renderBox = context.findRenderObject();
               points.add(DrawingPoints(
@@ -48,15 +46,8 @@ class _ComodosWidgetState extends State<ComodosWidget> {
                     ..strokeCap = strokeCap
                     ..isAntiAlias = true
                     ..strokeWidth = strokeWidth));
-              int x = new Random().nextInt(10);
-              int y = new Random().nextInt(90);
 
-              comodoAtual.pontos.add(new Ponto(x, y));
-
-              if(comodoAtual.uid != null){
-                atualizarDados();
-              }
-
+              adicionarPonto(details.globalPosition);
             });
           },
           onPanEnd: (details) {
@@ -83,8 +74,11 @@ class _ComodosWidgetState extends State<ComodosWidget> {
         ));
   }
 
-  atualizarDados() async{
-    await repository.updateComodo(comodoAtual);
+  adicionarPonto(Offset globalPosition) {
+    double x = globalPosition.dx;
+    double y = globalPosition.dy;
+
+    comodoAtual.pontos.add(new Ponto(x, y));
   }
 
   void abrirDialog() {
@@ -92,25 +86,34 @@ class _ComodosWidgetState extends State<ComodosWidget> {
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
-              title: new Text('Informe o nome do cômodo'),
-              content: Column(
-                children: <Widget>[
-                  new TextField(
-                    onChanged: (e) => comodoAtual.name = e,
-                  ),
-                  new RaisedButton(
-                    onPressed: () => persistirInformacoes(),
-                    child: new Text('asass'),
-                  )
-                ],
-              ));
+            title: new Text('Informe o nome do cômodo'),
+            content: new TextField(
+              onChanged: (e) => comodoAtual.name = e,
+              autofocus: true
+            ),
+            actions: <Widget>[
+              new RaisedButton(
+                onPressed: () => persistirInformacoes(),
+                child: new Text('Salvar'),
+                color: Colors.green,
+                textColor: Colors.white,
+              )
+            ],
+          );
         });
   }
 
-  void persistirInformacoes() async{
-    var documentId = await repository.addComodo(comodoAtual);
-    comodoAtual.uid = documentId;
+  void persistirInformacoes() async {
+    if(comodoAtual.name == null || comodoAtual.name.length == 0){
+      var snackBar = SnackBar(content: Text('Campo deve ser preenchido'));
+      Scaffold.of(context).showSnackBar(snackBar);
+      return;
+    }
+
+    await repository.addComodo(comodoAtual);
     Navigator.of(context).pop();
+
+    comodoAtual = new Comodo();
   }
 }
 
