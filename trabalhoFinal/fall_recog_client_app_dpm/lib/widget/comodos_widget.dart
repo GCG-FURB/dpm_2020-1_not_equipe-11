@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:ui';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fall_recog_client_app/model/comodo.dart';
 import 'package:flutter/material.dart';
 
@@ -14,6 +15,9 @@ class ComodosWidget extends StatefulWidget {
 class _ComodosWidgetState extends State<ComodosWidget> {
   double strokeWidth = 3.0;
   List<DrawingPoints> points = List();
+  var carregou = false;
+
+  List<DrawingPoints> pointsActual = List();
 
   List<Comodo> comodos = new List();
   var comodoAtual = new Comodo();
@@ -25,43 +29,39 @@ class _ComodosWidgetState extends State<ComodosWidget> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        body: GestureDetector(
-          onPanUpdate: (details) {
-            setState(() {
-              RenderBox renderBox = context.findRenderObject();
-              points.add(DrawingPoints(
-                  points: renderBox.globalToLocal(details.globalPosition),
-                  paint: Paint()
-                    ..strokeCap = strokeCap
-                    ..isAntiAlias = true
-                    ..strokeWidth = strokeWidth));
-            });
-          },
-          onPanStart: (details) async {
-            setState(() {
-              RenderBox renderBox = context.findRenderObject();
-              points.add(DrawingPoints(
-                  points: renderBox.globalToLocal(details.globalPosition),
-                  paint: Paint()
-                    ..strokeCap = strokeCap
-                    ..isAntiAlias = true
-                    ..strokeWidth = strokeWidth));
-
-              adicionarPonto(details.globalPosition);
-            });
-          },
-          onPanEnd: (details) {
-            setState(() {
-              points.add(null);
-            });
-          },
-          child: CustomPaint(
-            size: Size.infinite,
-            painter: DrawingPainter(
-              pointsList: points,
-            ),
+        body: Column(children: <Widget>[
+          StreamBuilder<QuerySnapshot>(
+            stream: repository.getStreamComodos(),
+            builder: (context, snapshot) {
+              if (!snapshot.hasData) {
+                return SizedBox(
+                  height: 100.0,
+                  width: 100.0,
+                  child: Center(child: CircularProgressIndicator()),
+                );
+              }
+              parseEvent(snapshot.data);
+              return new Column(children: <Widget>[]);
+            },
           ),
-        ),
+          Expanded(
+            child: Column(
+              children: <Widget>[
+                GestureDetector(
+                  onPanStart: (details) async {
+                    desenharPonto(details);
+                  },
+                  child: CustomPaint(
+                    size: Size.infinite,
+                    painter: DrawingPainter(
+                      pointsList: points,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          )
+        ]),
         floatingActionButton: Visibility(
           child: FloatingActionButton(
             child: Icon(Icons.save),
@@ -72,6 +72,72 @@ class _ComodosWidgetState extends State<ComodosWidget> {
           ),
           visible: comodoAtual.pontos.length >= 3,
         ));
+  }
+
+  void adicionarPontoLista(ponto) {
+    points.add(DrawingPoints(
+        points: ponto,
+        paint: Paint()
+          ..strokeCap = strokeCap
+          ..isAntiAlias = true
+          ..strokeWidth = strokeWidth));
+  }
+
+  void desenharPonto(details) {
+    var offsetNewPointToDraw =
+        new Offset(details.globalPosition.dx, details.globalPosition.dy);
+
+    if (comodoAtual.pontos.length >= 1) {
+      var lastPoint = comodoAtual.pontos.last;
+
+      if (comodoAtual.pontos.length > 2) {
+        setState(() {
+          points.removeAt(points.length - 1);
+          points.removeAt(points.length - 1);
+        });
+      }
+
+      setState(() {
+        points.add(null);
+        adicionarPontoLista(new Offset(lastPoint.x, lastPoint.y));
+        adicionarPontoLista(offsetNewPointToDraw);
+        adicionarPonto(offsetNewPointToDraw);
+
+        if (comodoAtual.pontos.length > 2) {
+          var firstPoint = comodoAtual.pontos.first;
+          adicionarPontoLista(new Offset(firstPoint.x, firstPoint.y));
+        }
+
+        points.add(null);
+      });
+    } else {
+      setState(() {
+        adicionarPontoLista(details.globalPosition);
+        points.add(null);
+        adicionarPonto(offsetNewPointToDraw);
+      });
+    }
+  }
+
+  void parseEvent(QuerySnapshot q) {
+//    points = new List();
+    if (!carregou) {
+      q.documents.forEach((element) {
+        var name = element.data['name'];
+        List pontos = element.data['pontos'];
+
+        var comodo = new Comodo();
+        comodo.uid = element.documentID;
+        comodo.name = name;
+
+        pontos.forEach((ponto) {
+          var offset = new Offset(ponto["x"], ponto["y"]);
+          adicionarPontoLista(offset);
+        });
+        points.add(null);
+      });
+      carregou = true;
+    }
   }
 
   adicionarPonto(Offset globalPosition) {
@@ -88,9 +154,7 @@ class _ComodosWidgetState extends State<ComodosWidget> {
           return AlertDialog(
             title: new Text('Informe o nome do cômodo'),
             content: new TextField(
-              onChanged: (e) => comodoAtual.name = e,
-              autofocus: true
-            ),
+                onChanged: (e) => comodoAtual.name = e, autofocus: true),
             actions: <Widget>[
               new RaisedButton(
                 onPressed: () => persistirInformacoes(),
@@ -104,7 +168,7 @@ class _ComodosWidgetState extends State<ComodosWidget> {
   }
 
   void persistirInformacoes() async {
-    if(comodoAtual.name == null || comodoAtual.name.length == 0){
+    if (comodoAtual.name == null || comodoAtual.name.length == 0) {
       var snackBar = SnackBar(content: Text('Campo deve ser preenchido'));
       Scaffold.of(context).showSnackBar(snackBar);
       return;
@@ -113,7 +177,20 @@ class _ComodosWidgetState extends State<ComodosWidget> {
     await repository.addComodo(comodoAtual);
     Navigator.of(context).pop();
 
+    fecharUltimoPonto(comodoAtual.pontos);
+
     comodoAtual = new Comodo();
+  }
+
+  void fecharUltimoPonto(pontos) {
+    var primeiroPonto = pontos.first;
+    var offsetPrimerioPonto = new Offset(primeiroPonto.x, primeiroPonto.y);
+
+    var ultimoPonto = pontos.last;
+    var offsetUltimoPonto = new Offset(ultimoPonto.x, ultimoPonto.y);
+    adicionarPontoLista(offsetPrimerioPonto);
+    adicionarPontoLista(offsetUltimoPonto);
+    points.add(null);
   }
 }
 
