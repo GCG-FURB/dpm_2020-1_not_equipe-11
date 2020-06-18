@@ -16,6 +16,7 @@ class _ComodosWidgetState extends State<ComodosWidget> {
   double strokeWidth = 3.0;
   List<DrawingPoints> points = List();
   var carregou = false;
+  var pontosUids = List();
 
   List<DrawingPoints> pointsActual = List();
 
@@ -45,33 +46,46 @@ class _ComodosWidgetState extends State<ComodosWidget> {
             },
           ),
           Expanded(
-            child: Column(
-              children: <Widget>[
-                GestureDetector(
-                  onPanStart: (details) async {
-                    desenharPonto(details);
-                  },
-                  child: CustomPaint(
-                    size: Size.infinite,
-                    painter: DrawingPainter(
-                      pointsList: points,
-                    ),
-                  ),
+            child: GestureDetector(
+              onPanStart: (details) async {
+                desenharPonto(details);
+              },
+              child: CustomPaint(
+                size: Size.infinite,
+                painter: DrawingPainter(
+                  pointsList: points,
                 ),
-              ],
+              ),
             ),
           )
         ]),
         floatingActionButton: Visibility(
-          child: FloatingActionButton(
-            child: Icon(Icons.save),
-            backgroundColor: Colors.green,
-            onPressed: () {
-              abrirDialog();
-            },
-          ),
-          visible: comodoAtual.pontos.length >= 3,
+          child: getFloatingActionButton(),
+          visible:
+              comodoAtual.pontos.length >= 3 || comodoAtual.pontos.length == 0,
         ));
+  }
+
+  Widget getFloatingActionButton() {
+    if (comodoAtual.pontos.length >= 3) {
+      return FloatingActionButton(
+        child: Icon(Icons.save),
+        backgroundColor: Colors.green,
+        onPressed: () {
+          abrirDialog();
+        },
+      );
+    } else if (comodoAtual.pontos.length == 0) {
+      return FloatingActionButton(
+        child: Icon(Icons.delete),
+        backgroundColor: Colors.red,
+        onPressed: () {
+          apagarPontos();
+        },
+      );
+    }else{
+      return Scaffold();
+    }
   }
 
   void adicionarPontoLista(ponto) {
@@ -120,7 +134,6 @@ class _ComodosWidgetState extends State<ComodosWidget> {
   }
 
   void parseEvent(QuerySnapshot q) {
-//    points = new List();
     if (!carregou) {
       q.documents.forEach((element) {
         var name = element.data['name'];
@@ -133,7 +146,16 @@ class _ComodosWidgetState extends State<ComodosWidget> {
         pontos.forEach((ponto) {
           var offset = new Offset(ponto["x"], ponto["y"]);
           adicionarPontoLista(offset);
+          comodo.pontos.add(new Ponto(offset.dx, offset.dy));
         });
+
+        var pontosFake = new List();
+        pontosFake.add(comodo.pontos.first);
+        pontosFake.add(comodo.pontos.last);
+        fecharUltimoPonto(pontosFake);
+
+        pontosUids.add(comodo.uid);
+
         points.add(null);
       });
       carregou = true;
@@ -167,6 +189,12 @@ class _ComodosWidgetState extends State<ComodosWidget> {
         });
   }
 
+  void apagarPontos() async {
+    for (var i = 1; i < pontosUids.length; i++) {
+      await repository.deletePontos(pontosUids[i]);
+    }
+  }
+
   void persistirInformacoes() async {
     if (comodoAtual.name == null || comodoAtual.name.length == 0) {
       var snackBar = SnackBar(content: Text('Campo deve ser preenchido'));
@@ -176,8 +204,6 @@ class _ComodosWidgetState extends State<ComodosWidget> {
 
     await repository.addComodo(comodoAtual);
     Navigator.of(context).pop();
-
-    fecharUltimoPonto(comodoAtual.pontos);
 
     comodoAtual = new Comodo();
   }
