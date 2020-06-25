@@ -58,24 +58,15 @@ class _ComodosWidgetState extends State<ComodosWidget> {
           )
         ]),
         floatingActionButton: Visibility(
-          child: getFloatingActionButton(),
-          visible:
-              comodoAtual.pontos.length >= 3 || comodoAtual.pontos.length == 0,
+          child: FloatingActionButton(
+            child: Icon(Icons.save),
+            backgroundColor: Colors.green,
+            onPressed: () {
+              abrirDialog();
+            },
+          ),
+          visible: comodoAtual.pontos.length >= 3,
         ));
-  }
-
-  Widget getFloatingActionButton() {
-    if (comodoAtual.pontos.length >= 3) {
-      return FloatingActionButton(
-        child: Icon(Icons.save),
-        backgroundColor: Colors.green,
-        onPressed: () {
-          abrirDialog();
-        },
-      );
-    } else {
-      return Scaffold();
-    }
   }
 
   void adicionarPontoLista(ponto) {
@@ -197,6 +188,7 @@ class _ComodosWidgetState extends State<ComodosWidget> {
     await repository.addComodo(comodoAtual);
     Navigator.of(context).pop();
 
+    comodos.add(comodoAtual);
     comodoAtual = new Comodo();
   }
 
