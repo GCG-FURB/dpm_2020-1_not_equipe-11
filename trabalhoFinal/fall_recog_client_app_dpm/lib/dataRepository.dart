@@ -72,7 +72,6 @@ class DataRepository {
   void addQuedaComodo(QuedaComodo quedaComodo) async{
     var json = quedaComodo.toJson();
     DocumentReference ref = await collectionQuedasComodos.add(json);
-    print(ref.documentID);
   }
 
   Stream<QuerySnapshot> getQuedasByComodoId(String comodoId) {

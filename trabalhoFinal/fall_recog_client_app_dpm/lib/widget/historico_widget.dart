@@ -34,7 +34,7 @@ class _HistoricoWidget extends State<HistoricoWidget>
   @override
   void initState() {
     super.initState();
-    _comodoSelecionado = "Escolha um comodo";
+    _comodoSelecionado = "Escolha um cômodo";
     DateTime time = DateTime.now();
     time = new DateTime.utc(
         time.year,
@@ -387,13 +387,12 @@ class _HistoricoWidget extends State<HistoricoWidget>
 
     return Column(children: <Widget>[
       new DropdownButton<String>(
-          hint: Text('Escolha um comodo'),
+          hint: Text('Escolha um cômodo'),
           value: _comodoSelecionado,
           onChanged: (newValue) {
             setState(() {
               _comodoSelecionado = newValue;
             });
-            print(_comodoSelecionado);
           },
           items: gerarListaComodosDropdown()),
     ]);
@@ -402,9 +401,9 @@ class _HistoricoWidget extends State<HistoricoWidget>
   gerarListaComodosDropdown() {
     List<DropdownMenuItem<String>> dropdownMenuItens = new List();
     dropdownMenuItens.add(new DropdownMenuItem<String>(
-      value: "Escolha um comodo",
+      value: "Escolha um cômodo",
       child: new Container(
-        child: new Text("Escolha um comodo"),
+        child: new Text("Escolha um cômodo"),
         width: 200.0,
       ),
     ));
@@ -437,7 +436,7 @@ class _HistoricoWidget extends State<HistoricoWidget>
 
     Navigator.of(context).pop();
     setState(() {
-      _comodoSelecionado = "Escolha um comodo";
+      _comodoSelecionado = "Escolha um cômodo";
     });
   }
 }
