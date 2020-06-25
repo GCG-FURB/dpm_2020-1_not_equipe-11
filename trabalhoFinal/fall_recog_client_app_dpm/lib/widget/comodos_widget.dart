@@ -41,7 +41,7 @@ class _ComodosWidgetState extends State<ComodosWidget> {
                   child: Center(child: CircularProgressIndicator()),
                 );
               }
-              parseEvent(snapshot.data);
+              parseComodos(snapshot.data);
               return new Column(children: <Widget>[]);
             },
           ),
@@ -52,9 +52,7 @@ class _ComodosWidgetState extends State<ComodosWidget> {
               },
               child: CustomPaint(
                 size: Size.infinite,
-                painter: DrawingPainter(
-                  pointsList: points,
-                ),
+                painter: DrawingPainter(pointsList: points, comodos: comodos),
               ),
             ),
           )
@@ -75,15 +73,7 @@ class _ComodosWidgetState extends State<ComodosWidget> {
           abrirDialog();
         },
       );
-    } else if (comodoAtual.pontos.length == 0) {
-      return FloatingActionButton(
-        child: Icon(Icons.delete),
-        backgroundColor: Colors.red,
-        onPressed: () {
-          apagarPontos();
-        },
-      );
-    }else{
+    } else {
       return Scaffold();
     }
   }
@@ -133,7 +123,7 @@ class _ComodosWidgetState extends State<ComodosWidget> {
     }
   }
 
-  void parseEvent(QuerySnapshot q) {
+  void parseComodos(QuerySnapshot q) {
     if (!carregou) {
       q.documents.forEach((element) {
         var name = element.data['name'];
@@ -142,6 +132,7 @@ class _ComodosWidgetState extends State<ComodosWidget> {
         var comodo = new Comodo();
         comodo.uid = element.documentID;
         comodo.name = name;
+        comodo.quantidade_quedas = element.data['quantidade_quedas'];
 
         pontos.forEach((ponto) {
           var offset = new Offset(ponto["x"], ponto["y"]);
@@ -153,7 +144,7 @@ class _ComodosWidgetState extends State<ComodosWidget> {
         pontosFake.add(comodo.pontos.first);
         pontosFake.add(comodo.pontos.last);
         fecharUltimoPonto(pontosFake);
-
+        comodos.add(comodo);
         pontosUids.add(comodo.uid);
 
         points.add(null);
@@ -202,6 +193,7 @@ class _ComodosWidgetState extends State<ComodosWidget> {
       return;
     }
 
+    comodoAtual.quantidade_quedas = 0;
     await repository.addComodo(comodoAtual);
     Navigator.of(context).pop();
 
@@ -221,13 +213,40 @@ class _ComodosWidgetState extends State<ComodosWidget> {
 }
 
 class DrawingPainter extends CustomPainter {
-  DrawingPainter({this.pointsList});
+  DrawingPainter({this.pointsList, this.comodos});
 
+  List<Comodo> comodos;
   List<DrawingPoints> pointsList;
   List<Offset> offsetPoints = List();
 
+  void createTextSpan(String text, Canvas canvas, size, Offset offset) {
+    final textStyle = TextStyle(
+      color: Colors.black,
+      fontSize: 17,
+    );
+    final textSpan = TextSpan(
+      text: text,
+      style: textStyle,
+    );
+    final textPainter = TextPainter(
+      text: textSpan,
+      textDirection: TextDirection.ltr,
+    );
+    textPainter.layout(
+      minWidth: 0,
+      maxWidth: size.width,
+    );
+    textPainter.paint(canvas, offset);
+  }
+
   @override
   void paint(Canvas canvas, Size size) {
+    for (var comodo in comodos) {
+      var offset = comodo.getHigherPointer(comodo.name);
+      createTextSpan(
+          "${comodo.name} - ${comodo.quantidade_quedas}", canvas, size, offset);
+    }
+
     for (int i = 0; i < pointsList.length - 1; i++) {
       if (pointsList[i] != null && pointsList[i + 1] != null) {
         canvas.drawLine(pointsList[i].points, pointsList[i + 1].points,
